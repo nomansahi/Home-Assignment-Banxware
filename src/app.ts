@@ -1,7 +1,6 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import swaggerUi from "swagger-ui-express";
-import axios from "axios";
 import { parseDate } from "./services/helpers";
 
 import {
@@ -57,8 +56,12 @@ app.get("/historical-balances", async (req: Request, res: Response) => {
     }
   }
 
-  console.log(fromDate, toDate);
-  const historicalBalance = await getHistoricalBalance(fromDate, toDate);
+  let order = "asc";
+  if (req.query.order && ["asc", "desc"].includes(req.query.order as string)) {
+    order = req.query.order as string;
+  }
+
+  const historicalBalance = await getHistoricalBalance(fromDate, toDate, order);
   return res.json(historicalBalance);
 });
 

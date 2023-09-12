@@ -42,44 +42,29 @@ export const getTranscations = async () => {
   return transactions;
 };
 
-export const getHistoricalBalance = async (fromDate?: Date, toDate?: Date) => {
-  console.log(fromDate, toDate);
+export const getHistoricalBalance = async (
+  fromDate?: Date,
+  toDate?: Date,
+  sortOrder?: string
+) => {
   const transactions = await getTranscations();
   const transactionsMap = new Map<string, Set<Transaction>>();
-  if (fromDate !== undefined) {
-    transactions
-      .filter((transaction) => new Date(transaction.date) <= fromDate)
-      .forEach((transaction) => {
-        const dateString = moment(transaction.date).format("DD/MM/YYYY");
-        const transactionsSet = transactionsMap.get(dateString) || new Set();
-        transactionsSet.add(transaction);
-        transactionsMap.set(dateString, transactionsSet);
-      });
-  }
 
-  if (toDate !== undefined) {
-    transactions
-      .filter((transaction) => transaction.date <= toDate)
-      .forEach((transaction) => {
-        const dateString = moment(transaction.date).format("DD/MM/YYYY");
-        const transactionsSet = transactionsMap.get(dateString) || new Set();
-        transactionsSet.add(transaction);
-        transactionsMap.set(dateString, transactionsSet);
-      });
-  }
+  // Combined filter logic
+  transactions.forEach((transaction) => {
+    const transactionDate = new Date(transaction.date);
 
-  if (
-    toDate === undefined &&
-    toDate === undefined &&
-    transactionsMap.size === 0
-  ) {
-    transactions.forEach((transaction) => {
-      const dateString = moment(transaction.date).format("DD/MM/YYYY");
+    // Filter transactions based on fromDate and toDate
+    if (
+      (!fromDate || transactionDate >= fromDate) &&
+      (!toDate || transactionDate <= toDate)
+    ) {
+      const dateString = moment(transactionDate).format("DD-MM-YYYY");
       const transactionsSet = transactionsMap.get(dateString) || new Set();
       transactionsSet.add(transaction);
       transactionsMap.set(dateString, transactionsSet);
-    });
-  }
+    }
+  });
 
   const totalBalances: Balance[] = [];
 
@@ -98,6 +83,14 @@ export const getHistoricalBalance = async (fromDate?: Date, toDate?: Date) => {
       currency,
     });
   }
+
+  // Sort the balances based on sortOrder parameter
+  totalBalances.sort((a, b) => {
+    const comparison =
+      moment(b.date, "DD-MM-YYYY").valueOf() -
+      moment(a.date, "DD-MM-YYYY").valueOf();
+    return sortOrder === "asc" ? -comparison : comparison;
+  });
 
   return totalBalances;
 };

@@ -123,6 +123,16 @@
               "format": "date",
               "pattern": "^[0-3][0-9]-[0-1][0-9]-[0-9]{4}$"
             }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order for dates. Can be either 'asc' for ascending or 'desc' for descending",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"]
+            }
           }
         ],
         "responses": {
